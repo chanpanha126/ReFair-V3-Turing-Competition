@@ -116,6 +116,16 @@ export const datasetOverview: DatasetOverview = {
   ],
 }
 
+// Cleaning change log — shown on the Clean page's completed state and
+// summarized on the Report page
+export const changeLog: string[] = [
+  'Dropped 61 near-duplicate rows',
+  'Re-parsed 2 malformed order_timestamp values',
+  'Flagged 14 delivery-time outliers for review (kept, not deleted)',
+  'Merged 3 spelling variants of "Lucky Burger" into one canonical name',
+  'Left driver_rating null for cancelled orders; flagged remaining gaps in completed orders for backfill',
+]
+
 // Box plot data for delivery_time_mins (Accuracy / outlier detection)
 export interface DeliveryTimeBoxplot {
   min: number

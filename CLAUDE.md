@@ -74,3 +74,95 @@ Mock data lives in `src/data/mockDataset.ts` — reuse it, don't reinvent new
 numbers.
 
 ## Build Log
+
+- **Report page** — built out `src/pages/Report.tsx`: dark `--ink` cover
+  (badge, title, dataset name), then Executive summary / What we cleaned and
+  why / Key findings (2-col grid) / stat row / Recommendations cards, ending
+  in Download PDF (`window.print()`) + Back to home. Key findings and
+  recommendations are computed from `topRestaurants`, `ordersByArea`,
+  `deliveryTrend`, and `cancellationByArea` rather than hardcoded, so the
+  numbers stay consistent if the mock dataset changes. Moved the cleaning
+  `changeLog` out of `Clean.tsx` and into `mockDataset.ts` (exported) so
+  Report can reuse the exact same change log instead of duplicating it.
+- **Clean page — quality grid fix** — the 6-dimension quality grid in
+  `Clean.tsx` is now `md:grid-cols-3` (exactly 3×2, was `md:grid-cols-2`).
+  The real overlap bug wasn't the CSS grid itself (row auto-sizing already
+  handles expanded cards fine) — it was chart internals with hardcoded pixel
+  widths that didn't fit the narrower 3-column card: `DeliveryBoxPlot` and
+  `ScoreBar` used a fixed-width `BarChart` instead of `ResponsiveContainer`,
+  and `ConsistencyBar`'s "Before" chart used a column layout with
+  `interval={0}` axis tick labels that collided once the card got narrow.
+  Fixed by making every chart width-responsive (`ResponsiveContainer`
+  width="100%") and rebuilding `ConsistencyBar` as stacked horizontal bars
+  (labels in a fixed-width `YAxis` column that wraps instead of colliding)
+  rather than side-by-side vertical bar charts. Verified by scripting
+  Playwright to expand each of the 6 cards individually and all at once, at
+  1280px/800px/mobile widths, in both the quality-report and completed
+  (before/after) states.
+- **Analyze page — navigation, settings panel, polish** — `Analyze.tsx`'s
+  toolbar "Present" button was decorative; renamed to "View Report" and
+  wired to a real `Link` to `/report`, plus added a "← Back" `Link` to `/`.
+  Both render as genuine anchors (`Button` with `render={<Link />}`), not
+  click handlers that go nowhere. `ChartCard`'s settings `Sheet` was using
+  shadcn's default modal overlay (`bg-black/10` + backdrop-blur), which
+  dimmed the dashboard behind it; added an `overlay` prop to `SheetContent`
+  (default `true`, so other future sheets keep the normal backdrop) and set
+  it `false` here, plus `modal={false}` on the `Sheet` root so the dashboard
+  stays fully visible *and* interactive behind the panel. Rebuilt the panel
+  body as an `Accordion` with "Chart Properties" (open by default — title
+  input that live-updates the card's displayed title while the sheet is
+  open, and a 7-option chart-type icon grid: Bar/Line/Pie/Donut/Combo/
+  Horizontal Bar/Table), a collapsible "X-Axis" section (Label + Column
+  dropdown sourced from the dataset's dimension columns), a "Group by
+  (optional)" dropdown (intentionally non-functional per spec), and a
+  collapsible "Values (1)" section showing the metric label read-only.
+  `GenericChart.tsx` gained `pie`, `combo`, and `horizontalBar` render cases
+  to back the three new chart-type options. Cancel and the sheet's X button
+  both discard the draft and revert to the committed config; Save commits
+  it via the existing `onUpdate` callback. Added restrained polish to
+  `ChartCard`'s wrapping `Card` — soft shadow, a hover lift with a
+  primary-ring color shift, and a 3px top accent bar in the chart's active
+  series color. Verified with Playwright: confirmed the element under the
+  cursor behind an open settings panel is real dashboard content (not an
+  overlay), confirmed title edits appear live and revert on Cancel/commit
+  on Save, confirmed both nav links land on `/report` and `/` respectively,
+  and programmatically checked all `.react-grid-item` bounding boxes for
+  pairwise overlap before/after dragging and resizing cards (none found).
+- **Clean page — card redesign, real overlap fixes, polish** — the earlier
+  "3×2 grid" fix didn't actually resolve the reported cramping, because the
+  collapsed card header packed status icon + name + "Confirmed" badge +
+  score + chevron onto one ~280px line; once a dimension was confirmed the
+  badge collided with the name and score. Restructured each card into a
+  stacked layout instead: status chip + name, then a large score with a
+  Healthy/Flagged/Confirmed pill, then the progress bar, then the note —
+  each on its own row with explicit gaps, so nothing competes for
+  horizontal space. Cards got `min-h-[188px]` (a floor, not padding — the
+  natural content height is ~186px), the grid gap went `gap-4` → `gap-6`
+  (24px), and the note is `line-clamp-2` with a `min-h` so variable-length
+  notes can't change card height unpredictably.
+  Two genuine text overlaps were found by scripting a pairwise
+  bounding-box collision check over every leaf text node (including SVG
+  `<text>`) rather than eyeballing screenshots: `CompletenessBar`'s x-axis
+  label sat on top of its legend (fixed by promoting the label to an HTML
+  caption above the chart), and `ConsistencyBar`'s long axis labels were
+  being word-wrapped by Recharts into `<tspan>`s whose boxes overlapped.
+  `ConsistencyBar` is now plain CSS/Framer bars instead of Recharts — for
+  three data points it's simpler, and unlike a fixed-pixel `YAxis width` it
+  stays readable at narrow card widths (labels truncate, value counts never
+  clip). `ScoreBar` was likewise rewritten from a Recharts `BarChart` into a
+  lightweight animated CSS bar so it can live in the always-visible card
+  header. Polish: soft shadow + hover elevation on the 6 cards, brick/sage
+  status accents, a tinted uppercase table header on the dataset profile,
+  and staggered Framer Motion entrance animations. Verified the collision
+  check passes for every card expanded individually, in combination, all
+  six at once, with and without Confirmed badges, at 1440/1280/1024/900/
+  800/390px.
+- **Analyze page — Back button was already present** — reported as missing,
+  but the `← Back` link added in the previous fix was in the JSX and
+  working: it renders at x=16 in the toolbar with `href="/"`, is visible
+  with no `display`/`opacity`/`z-index` problem at every width from 1024 to
+  1680, and `elementFromPoint` at its center resolves to the anchor. The
+  stale view was almost certainly a browser tab held by a dev server
+  started before the change landed. Switched it from `variant="ghost"` to
+  `variant="outline"` so it reads as a distinct control rather than plain
+  text next to the title.
