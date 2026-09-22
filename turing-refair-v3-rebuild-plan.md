@@ -163,12 +163,15 @@ Set up a new Vite + React + TypeScript project. Then:
    design token values, the project folder structure, a one-line reminder that
    mock data lives in src/data/mockDataset.ts and should not be reinvented, and
    an empty "## Build Log" section at the bottom for future session notes
+9. Initialize git, create a .gitignore appropriate for a Vite/React project
+   (node_modules, dist, .env), make an initial commit, and add the remote
+   origin at [paste your GitHub repo URL here]
 
 Do not build any page content yet — this step is scaffold and design tokens only.
 Show me the project running with four empty routed pages before we continue.
 ```
 
-**Verify before continuing:** `npm run dev` works, all four routes navigate, fonts load, Tailwind + shadcn components are available, `CLAUDE.md` exists at the project root and reads back correctly.
+**Verify before continuing:** `npm run dev` works, all four routes navigate, fonts load, Tailwind + shadcn components are available, `CLAUDE.md` exists at the project root and reads back correctly, `git remote -v` shows your GitHub repo connected.
 
 ---
 
@@ -362,7 +365,7 @@ already built.
 
 ## 6. Running and presenting it
 
-**After every prompt above:** tell Claude Code to append a short entry to `CLAUDE.md`'s Build Log — what was built, any decision worth remembering — before you move to the next prompt. This is what keeps a later session (or a fresh one, if context gets confused) grounded in what already exists instead of guessing or rebuilding.
+**After every prompt above:** once you've looked at the running app yourself and confirmed the phase actually works, tell Claude Code two things: append a short entry to `CLAUDE.md`'s Build Log (what was built, any decision worth remembering), and commit + push — e.g. "commit this as 'Clean screen complete' and push to origin main." Do this before moving to the next prompt. This is what keeps a later session (or a fresh one, if context gets confused) grounded in what already exists, and gives you a real rollback point if the next phase goes badly.
 
 **Local development:** `npm install && npm run dev` — runs at `localhost:5173` by default.
 
