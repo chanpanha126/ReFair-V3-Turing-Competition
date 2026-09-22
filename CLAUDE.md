@@ -205,3 +205,37 @@ numbers.
   cropped screenshot), and exercised the Clean "confirm all fixes"
   completed state and the Analyze chart-settings sheet open state, not
   just each page's default view.
+- **Fix Analyze layout — chat and settings coexist, dashboard polish
+  pass** — the chart-settings `Sheet` added in the earlier Analyze polish
+  pass was positioned `fixed` at the right edge of the viewport, which is
+  exactly where the chat panel lives; even with `overlay={false}` and
+  `modal={false}` keeping the dashboard interactive underneath, the panel
+  still floated directly on top of the chat column, so opening chart
+  settings visually hid it. Fixed by removing the Sheet/modal entirely:
+  `ChartCard.tsx` no longer owns any settings UI or open state — it's now
+  a pure display component that calls an `onOpenSettings(id)` prop and
+  takes `active`/`previewTitle` props for highlighting itself and showing
+  a live-edited title. The settings form was extracted into a new
+  `ChartSettingsPanel.tsx` and lifted to `Analyze.tsx`, which now tracks
+  `settingsChartId` + `previewTitle` and renders the panel as a normal
+  sibling flex column between the chart grid and the chat sidebar —
+  `chart grid | settings (320px, AnimatePresence width-animates in/out) |
+  chat (340px, permanent)`. Because it's real layout instead of an
+  overlay, both columns are simultaneously visible and independently
+  interactive: verified with Playwright by opening a chart's settings,
+  confirming the chat column's bounding box and the settings column's
+  bounding box don't overlap, then interacting with both at once — sent a
+  suggested-question message in chat and typed a new chart title in
+  settings in the same session, confirming the chat message appended
+  correctly *and* the card's title live-updated, and that Cancel closes
+  the settings column, reverts the title, and leaves chat untouched.
+  Dashboard polish to match Home's bar: KPI cards now carry a per-metric
+  accent (`--blue`/`--sky`/`--steel`/`--brick`, matching what each metric
+  means) as both a subtle `color-mix` background tint and an icon-badge
+  color, with a staggered fade-up mount animation; chart cards get the
+  same stagger as a fade+scale mount animation, applied to an inner
+  wrapper div rather than the grid item itself so it doesn't fight
+  react-grid-layout's own positioning transform on the outer element; the
+  active chart (the one whose settings are open) now gets a visible
+  `ring-primary` highlight so it's clear which card the settings column
+  belongs to.

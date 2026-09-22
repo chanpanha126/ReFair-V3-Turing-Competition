@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowLeft,
   Clock,
@@ -18,6 +18,7 @@ import 'react-grid-layout/css/styles.css'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChartCard, type ChartConfig } from '@/components/analyze/ChartCard'
+import { ChartSettingsPanel } from '@/components/analyze/ChartSettingsPanel'
 import { ChatPanel } from '@/components/analyze/ChatPanel'
 import { SINGLE_SERIES_PALETTE } from '@/components/charts/GenericChart'
 import { Button } from '@/components/ui/button'
@@ -80,10 +81,15 @@ const initialLayout: Layout = [
 ]
 
 const kpiCards = [
-  { label: 'GMV', value: kpis.gmv.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }), icon: DollarSign },
-  { label: 'Orders', value: kpis.orders.toLocaleString(), icon: ShoppingBag },
-  { label: 'Avg delivery time', value: `${kpis.avgDeliveryMin} min`, icon: Clock },
-  { label: 'Cancellation rate', value: `${kpis.cancellationRate}%`, icon: XCircle },
+  {
+    label: 'GMV',
+    value: kpis.gmv.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }),
+    icon: DollarSign,
+    accent: 'var(--blue)',
+  },
+  { label: 'Orders', value: kpis.orders.toLocaleString(), icon: ShoppingBag, accent: 'var(--sky)' },
+  { label: 'Avg delivery time', value: `${kpis.avgDeliveryMin} min`, icon: Clock, accent: 'var(--steel)' },
+  { label: 'Cancellation rate', value: `${kpis.cancellationRate}%`, icon: XCircle, accent: 'var(--brick)' },
 ]
 
 const toolbarIcons = [
@@ -98,14 +104,27 @@ export default function Analyze() {
   const [charts, setCharts] = useState<ChartConfig[]>(initialCharts)
   const [layout, setLayout] = useState<Layout>(initialLayout)
   const [colorIndex, setColorIndex] = useState(0)
+  const [settingsChartId, setSettingsChartId] = useState<string | null>(null)
+  const [previewTitle, setPreviewTitle] = useState<string | null>(null)
 
   const activeColor = SINGLE_SERIES_PALETTE[colorIndex].value
+  const settingsChart = charts.find((c) => c.id === settingsChartId) ?? null
 
   const updateChart = (
     id: string,
     updates: Partial<Pick<ChartConfig, 'title' | 'type' | 'xAxisColumn' | 'xAxisLabel'>>,
   ) => {
     setCharts((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)))
+  }
+
+  const openSettings = (id: string) => {
+    setSettingsChartId(id)
+    setPreviewTitle(null)
+  }
+
+  const closeSettings = () => {
+    setSettingsChartId(null)
+    setPreviewTitle(null)
   }
 
   const addPaymentMethodChart = () => {
@@ -183,19 +202,29 @@ export default function Analyze() {
         <div className="min-w-0 flex-1 overflow-y-auto px-6 py-6">
           {/* KPI strip */}
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {kpiCards.map((kpi) => (
-              <div
+            {kpiCards.map((kpi, i) => (
+              <motion.div
                 key={kpi.label}
-                className="rounded-lg border border-border bg-card p-4 shadow-sm ring-1 ring-foreground/10 transition-shadow duration-200 hover:shadow-md"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                className="rounded-lg border border-border p-4 shadow-sm ring-1 ring-foreground/10 transition-shadow duration-200 hover:shadow-md"
+                style={{ backgroundColor: `color-mix(in srgb, ${kpi.accent} 6%, var(--card))` }}
               >
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex size-7 items-center justify-center rounded-md bg-accent text-primary">
+                  <span
+                    className="inline-flex size-7 items-center justify-center rounded-md"
+                    style={{
+                      backgroundColor: `color-mix(in srgb, ${kpi.accent} 16%, white)`,
+                      color: kpi.accent,
+                    }}
+                  >
                     <kpi.icon className="size-4" strokeWidth={1.75} />
                   </span>
                   <p className="text-xs text-muted-foreground">{kpi.label}</p>
                 </div>
                 <p className="mt-2 font-mono text-xl text-foreground">{kpi.value}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
 
@@ -229,9 +258,22 @@ export default function Analyze() {
               dragConfig={{ handle: '.card-drag-handle', cancel: '.no-drag' }}
               resizeConfig={{ handles: ['se'] }}
             >
-              {charts.map((chart) => (
+              {charts.map((chart, i) => (
                 <div key={chart.id}>
-                  <ChartCard config={chart} color={activeColor} onUpdate={updateChart} />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.35, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+                    className="h-full"
+                  >
+                    <ChartCard
+                      config={chart}
+                      color={activeColor}
+                      active={chart.id === settingsChartId}
+                      previewTitle={chart.id === settingsChartId ? previewTitle : null}
+                      onOpenSettings={openSettings}
+                    />
+                  </motion.div>
                 </div>
               ))}
               <div key="add-chart">
@@ -248,7 +290,29 @@ export default function Analyze() {
           </div>
         </div>
 
-        {/* Chat sidebar */}
+        {/* Chart settings column — slides in between the grid and chat, never covers either */}
+        <AnimatePresence>
+          {settingsChart && (
+            <motion.div
+              key={settingsChart.id}
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 320, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="shrink-0 overflow-hidden border-l border-border shadow-[-8px_0_24px_-16px_rgba(16,27,51,0.2)]"
+            >
+              <ChartSettingsPanel
+                config={settingsChart}
+                color={activeColor}
+                onUpdate={updateChart}
+                onClose={closeSettings}
+                onDraftTitleChange={setPreviewTitle}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Chat sidebar — permanent, never hidden or covered */}
         <div className="w-[340px] shrink-0">
           <ChatPanel />
         </div>
