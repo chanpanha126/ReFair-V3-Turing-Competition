@@ -22,6 +22,7 @@ import { ChatPanel } from '@/components/analyze/ChatPanel'
 import { SINGLE_SERIES_PALETTE } from '@/components/charts/GenericChart'
 import { Button } from '@/components/ui/button'
 import { cancellationByArea, deliveryTrend, kpis, ordersByArea, topRestaurants } from '@/data/mockDataset'
+import logoIcon from '@/assets/logo-icon.png'
 
 const initialCharts: ChartConfig[] = [
   {
@@ -139,6 +140,9 @@ export default function Analyze() {
       {/* Toolbar */}
       <header className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
+          <Link to="/" className="shrink-0 transition-opacity hover:opacity-80" title="ReFair home">
+            <img src={logoIcon} alt="ReFair" className="size-7" />
+          </Link>
           <Button variant="outline" size="sm" render={<Link to="/" />} nativeButton={false}>
             <ArrowLeft className="size-4" />
             Back
@@ -180,7 +184,10 @@ export default function Analyze() {
           {/* KPI strip */}
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {kpiCards.map((kpi) => (
-              <div key={kpi.label} className="rounded-lg border border-border bg-card p-4">
+              <div
+                key={kpi.label}
+                className="rounded-lg border border-border bg-card p-4 shadow-sm ring-1 ring-foreground/10 transition-shadow duration-200 hover:shadow-md"
+              >
                 <div className="flex items-center gap-2">
                   <span className="inline-flex size-7 items-center justify-center rounded-md bg-accent text-primary">
                     <kpi.icon className="size-4" strokeWidth={1.75} />

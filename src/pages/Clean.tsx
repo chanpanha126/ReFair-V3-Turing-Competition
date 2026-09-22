@@ -14,6 +14,7 @@ import { ConsistencyBar } from '@/components/charts/ConsistencyBar'
 import { DeliveryBoxPlot } from '@/components/charts/DeliveryBoxPlot'
 import { ScoreBar } from '@/components/charts/ScoreBar'
 import { changeLog, datasetOverview, qualityDimensions } from '@/data/mockDataset'
+import logoFull from '@/assets/logo-full.png'
 
 type DimensionName = (typeof qualityDimensions)[number]['name']
 
@@ -113,8 +114,8 @@ export default function Clean() {
     <div className="min-h-screen">
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
-          <Link to="/" className="font-heading text-xl font-semibold tracking-tight text-foreground">
-            ReFair
+          <Link to="/" className="flex items-center transition-opacity hover:opacity-80">
+            <img src={logoFull} alt="ReFair" className="h-8 w-auto" />
           </Link>
           <Link to="/analyze" className="text-sm text-muted-foreground hover:text-foreground">
             Skip to Analyze →
@@ -153,7 +154,7 @@ export default function Clean() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-sm"
+            className="mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-sm ring-1 ring-foreground/10 transition-shadow duration-200 hover:shadow-md"
           >
             <Table>
               <TableHeader className="[&_tr]:bg-muted/50">
@@ -292,7 +293,7 @@ export default function Clean() {
                 })}
               </div>
 
-              <Card className="mt-8">
+              <Card className="mt-8 shadow-sm transition-shadow duration-200 hover:shadow-md">
                 <CardHeader>
                   <CardTitle>Summary</CardTitle>
                 </CardHeader>
@@ -321,7 +322,7 @@ export default function Clean() {
                 rows out — here's what changed.
               </p>
 
-              <Card className="mt-6">
+              <Card className="mt-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
                 <CardContent>
                   <CleaningImpactChart />
                   <Separator className="my-4" />

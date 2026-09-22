@@ -98,7 +98,10 @@ export function ChartCard({ config, color, onUpdate }: ChartCardProps) {
       </CardContent>
 
       <Sheet open={open} onOpenChange={setOpen} modal={false}>
-        <SheetContent overlay={false} className="flex flex-col">
+        <SheetContent
+          overlay={false}
+          className="flex flex-col overflow-hidden border border-border shadow-2xl data-[side=right]:inset-y-3 data-[side=right]:right-3 data-[side=right]:h-[calc(100%-1.5rem)] data-[side=right]:rounded-2xl"
+        >
           <SheetHeader className="border-b border-border pb-4">
             <SheetTitle>Chart settings</SheetTitle>
           </SheetHeader>

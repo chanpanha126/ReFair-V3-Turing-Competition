@@ -58,9 +58,11 @@ export function ChatPanel() {
   }
 
   return (
-    <aside className="flex h-full w-full flex-col border-l border-border bg-card">
+    <aside className="flex h-full w-full flex-col border-l border-border bg-card shadow-[-8px_0_24px_-16px_rgba(16,27,51,0.25)]">
       <div className="flex items-center gap-2 border-b border-border px-4 py-3.5">
-        <Sparkles className="size-4 text-primary" />
+        <span className="inline-flex size-7 items-center justify-center rounded-md bg-accent text-primary">
+          <Sparkles className="size-4" strokeWidth={1.75} />
+        </span>
         <h2 className="font-heading text-sm font-medium text-foreground">Assistant</h2>
       </div>
 

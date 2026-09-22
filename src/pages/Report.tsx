@@ -15,6 +15,7 @@ import {
   qualityDimensions,
   topRestaurants,
 } from '@/data/mockDataset'
+import logoFull from '@/assets/logo-full.png'
 
 const overallScore = Math.round(
   qualityDimensions.reduce((sum, d) => sum + d.score, 0) / qualityDimensions.length,
@@ -88,8 +89,8 @@ export default function Report() {
     <div className="min-h-screen">
       <header className="border-b border-border print:hidden">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
-          <Link to="/" className="font-heading text-xl font-semibold tracking-tight text-foreground">
-            ReFair
+          <Link to="/" className="flex items-center transition-opacity hover:opacity-80">
+            <img src={logoFull} alt="ReFair" className="h-8 w-auto" />
           </Link>
           <Link to="/analyze" className="text-sm text-muted-foreground hover:text-foreground">
             ← Back to Analyze
@@ -102,7 +103,7 @@ export default function Report() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="bg-[var(--ink)] px-6 py-24 text-center"
+        className="relative bg-[var(--ink)] px-6 py-24 text-center shadow-[0_24px_48px_-28px_rgba(16,27,51,0.45)]"
       >
         <div className="mx-auto max-w-2xl">
           <Badge className="border-white/15 bg-white/10 text-white">
@@ -122,7 +123,7 @@ export default function Report() {
       <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
         {/* Executive summary */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}>
-          <Card>
+          <Card className="shadow-sm transition-shadow duration-200 hover:shadow-md">
             <CardHeader>
               <CardTitle>Executive summary</CardTitle>
             </CardHeader>
@@ -143,7 +144,7 @@ export default function Report() {
 
         {/* What we cleaned and why */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
-          <Card>
+          <Card className="shadow-sm transition-shadow duration-200 hover:shadow-md">
             <CardHeader>
               <CardTitle>What we cleaned and why</CardTitle>
             </CardHeader>
@@ -162,14 +163,17 @@ export default function Report() {
 
         {/* Key findings */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}>
-          <Card>
+          <Card className="shadow-sm transition-shadow duration-200 hover:shadow-md">
             <CardHeader>
               <CardTitle>Key findings</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
                 {keyFindings.map((finding) => (
-                  <div key={finding.label} className="rounded-lg border border-border p-4">
+                  <div
+                    key={finding.label}
+                    className="rounded-lg border border-border bg-card p-4 shadow-sm ring-1 ring-foreground/10 transition-shadow duration-200 hover:shadow-md"
+                  >
                     <div className="flex items-center gap-2">
                       <span className="inline-flex size-7 items-center justify-center rounded-md bg-accent text-primary">
                         <finding.icon className="size-4" strokeWidth={1.75} />
@@ -189,7 +193,10 @@ export default function Report() {
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {statRow.map((stat) => (
-              <div key={stat.label} className="rounded-lg border border-border bg-card px-4 py-3">
+              <div
+                key={stat.label}
+                className="rounded-lg border border-border bg-card px-4 py-3 shadow-sm ring-1 ring-foreground/10 transition-shadow duration-200 hover:shadow-md"
+              >
                 <p className="text-xs text-muted-foreground">{stat.label}</p>
                 <p className="mt-1 font-mono text-base text-foreground">{stat.value}</p>
               </div>
@@ -199,7 +206,7 @@ export default function Report() {
 
         {/* Recommendation */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.25 }}>
-          <Card>
+          <Card className="shadow-sm transition-shadow duration-200 hover:shadow-md">
             <CardHeader>
               <CardTitle>Recommendations</CardTitle>
             </CardHeader>

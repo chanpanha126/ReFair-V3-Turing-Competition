@@ -166,3 +166,42 @@ numbers.
   started before the change landed. Switched it from `variant="ghost"` to
   `variant="outline"` so it reads as a distinct control rather than plain
   text next to the title.
+- **Global UI polish pass — consistent visual quality and branding across
+  all pages** — Home had already hit the target visual bar (soft shadows,
+  hover states, meaningful accent colors, restrained motion); this pass
+  brought Clean, Analyze, and Report up to the same level and fixed logo
+  inconsistency across all four. Logo: Clean and Report headers were
+  showing a text-only "ReFair" wordmark instead of the real `logo-full.png`
+  asset Home already used — replaced both with the actual logo, linked to
+  `/`. Analyze's toolbar was tight (Back button + title + action icons
+  already competing for space), so it got the icon-only `logo-icon.png`
+  mark instead, placed before the Back button and also linked to `/`.
+  Verified with Playwright that all three logo links actually navigate to
+  `/`, not just that the asset renders. Clean: the dataset-overview table,
+  the post-confirm Summary card, and the before/after "Cleaning complete"
+  card were plain `<Card>`s with no shadow — added the same
+  `shadow-sm`/hover treatment used by the quality-dimension cards so the
+  whole page reads as one system. Analyze: the KPI strip was flat
+  `border + bg-card` rectangles — added `shadow-sm ring-1 ring-foreground/10`
+  plus a restrained `hover:shadow-md` (no lift, to avoid adding motion
+  noise to an already-busy screen); the chat panel got a subtle left-edge
+  shadow and an accent-tinted icon badge matching the KPI icons; the chart
+  settings `Sheet` no longer looks like a default flush-edge panel — it's
+  now a floating card (`rounded-2xl`, bordered, `shadow-2xl`, inset by
+  `12px` from the viewport edges via `data-[side=right]:` overrides on
+  `SheetContent`), confirmed via computed-style inspection since the
+  effect is subtle in a full-page screenshot. Report (previously
+  unpolished): swapped the text logo for the real asset, added a soft
+  drop shadow under the dark cover section for depth, and gave every
+  section card, the key-findings tiles, and the stat row the same
+  `shadow-sm` + calm `hover:shadow-md` treatment (no translate/lift,
+  since this page is meant to read as a finished document rather than an
+  interactive dashboard). Verified all four pages at 1280px and 900px with
+  Playwright: confirmed exactly one logo `<img>` renders in each page's
+  header/toolbar, ran the pairwise text-bounding-box overlap check from
+  the Clean-page fix across every page (the only flagged pairs were
+  false positives — wrapped heading line-boxes and axis-aligned boxes
+  around Recharts' rotated bar-chart tick labels, confirmed clean via a
+  cropped screenshot), and exercised the Clean "confirm all fixes"
+  completed state and the Analyze chart-settings sheet open state, not
+  just each page's default view.
