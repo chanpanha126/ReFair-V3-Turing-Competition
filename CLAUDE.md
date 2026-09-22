@@ -239,3 +239,44 @@ numbers.
   active chart (the one whose settings are open) now gets a visible
   `ring-primary` highlight so it's clear which card the settings column
   belongs to.
+- **Add upload + processing step to Clean and Analyze entry points** —
+  both `/clean` and `/analyze`, when reached directly from Home, used to
+  jump straight to a fully-processed result with no upload step, which
+  broke the "real workflow" illusion. Added a shared
+  `src/components/upload/UploadFlow.tsx`: a dropzone (drag-and-drop plus a
+  "Browse files" button, `accept=".csv,.xlsx,.xls"`, filename/size shown
+  in a file chip once picked — the file is never actually parsed, just its
+  `name`/`size` read off the browser `File` object) that transitions into
+  a scripted ~1.9s processing state (3 sequential status messages
+  cross-fading via `AnimatePresence`, a spinning `Loader2`, and a
+  linear-fill progress bar timed to match), then calls `onComplete
+  (fileName)`. Both pages hold their own `uploadedFileName` state and
+  render `UploadFlow` in place of their normal content until it resolves;
+  `Clean.tsx` also feeds the picked filename into the "Dataset" stat
+  (`uploadedFileName ?? datasetOverview.name`) instead of the hardcoded
+  `grab_food_orders_march.csv`, while the mock data itself stays fixed
+  regardless of what was "uploaded," per spec. The copy is framed
+  differently per entry point — Clean says "Upload your dataset" /
+  "we'll profile it for quality issues automatically" with steps
+  `Reading file… → Scanning data quality… → Almost done…`; Analyze (direct
+  entry) says "Upload your clean dataset" / "we'll build your dashboard
+  automatically" with steps `Reading file… → Validating structure… →
+  Preparing dashboard…`, since that path assumes the data is already
+  clean. The one thing this couldn't be is a blanket "show upload on every
+  /analyze visit": reaching Analyze via Clean's "Continue to Analyze" (or
+  the header's "Skip to Analyze") must NOT re-prompt for a file, since the
+  user already uploaded one at the start of the Clean flow. Solved with
+  React Router location state — both of those links now pass `state={{
+  skipUpload: true }}`, and `Analyze.tsx` reads
+  `location.state?.skipUpload` to decide whether it needs its own upload
+  step (`needsUpload = !skippedUpload && !uploadedFileName`); a direct
+  visit or reload has no state and correctly falls back to requiring
+  upload. Verified end-to-end with Playwright rather than just
+  typechecking: Home → Clean tool card → dropped a real file via
+  `setInputFiles` → confirmed the file chip, all three processing
+  messages in sequence, and the Dataset-overview stat showing the actual
+  picked filename; then Confirm-all → Continue to Analyze and confirmed
+  the upload state was skipped and the dashboard rendered directly; and
+  separately Home → Analyze tool card → confirmed the "already-clean"
+  copy, the same processing sequence, and the dashboard landing correctly
+  afterward.

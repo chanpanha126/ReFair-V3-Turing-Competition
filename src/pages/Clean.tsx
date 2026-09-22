@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { UploadFlow } from '@/components/upload/UploadFlow'
 import { CleaningImpactChart } from '@/components/charts/CleaningImpactChart'
 import { CompletenessBar } from '@/components/charts/CompletenessBar'
 import { ConsistencyBar } from '@/components/charts/ConsistencyBar'
@@ -92,9 +93,12 @@ function downloadCleanedProfile() {
   URL.revokeObjectURL(url)
 }
 
+const CLEAN_PROCESSING_STEPS = ['Reading file...', 'Scanning data quality...', 'Almost done...']
+
 export default function Clean() {
   const [confirmed, setConfirmed] = useState<Set<DimensionName>>(new Set())
   const [completed, setCompleted] = useState(false)
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null)
 
   const toggleConfirmed = (name: DimensionName) => {
     setConfirmed((prev) => {
@@ -117,12 +121,30 @@ export default function Clean() {
           <Link to="/" className="flex items-center transition-opacity hover:opacity-80">
             <img src={logoFull} alt="ReFair" className="h-8 w-auto" />
           </Link>
-          <Link to="/analyze" className="text-sm text-muted-foreground hover:text-foreground">
+          <Link to="/analyze" state={{ skipUpload: true }} className="text-sm text-muted-foreground hover:text-foreground">
             Skip to Analyze →
           </Link>
         </div>
       </header>
 
+      {!uploadedFileName ? (
+        <main className="mx-auto flex min-h-[calc(100vh-73px)] max-w-5xl items-center px-6 py-12">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="w-full"
+          >
+            <UploadFlow
+              heading="Upload your dataset"
+              description="Drop in your file and we'll profile it for quality issues automatically."
+              ctaLabel="Upload & Analyze"
+              processingSteps={CLEAN_PROCESSING_STEPS}
+              onComplete={setUploadedFileName}
+            />
+          </motion.div>
+        </main>
+      ) : (
       <main className="mx-auto max-w-5xl space-y-16 px-6 py-12">
         {/* Section 1 — Dataset overview */}
         <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
@@ -131,7 +153,7 @@ export default function Clean() {
 
           <div className="mt-6 flex flex-wrap items-center gap-4">
             {[
-              { label: 'Dataset', value: datasetOverview.name, mono: false },
+              { label: 'Dataset', value: uploadedFileName ?? datasetOverview.name, mono: false },
               { label: 'Rows', value: datasetOverview.rowCount.toLocaleString(), mono: true },
               { label: 'Columns', value: String(datasetOverview.columnCount), mono: true },
             ].map((stat, i) => (
@@ -342,7 +364,7 @@ export default function Clean() {
                   <Download className="size-4" />
                   Download cleaned CSV
                 </Button>
-                <Button render={<Link to="/analyze" />} nativeButton={false}>
+                <Button render={<Link to="/analyze" state={{ skipUpload: true }} />} nativeButton={false}>
                   Continue to Analyze
                   <ArrowRight className="size-4" />
                 </Button>
@@ -351,6 +373,7 @@ export default function Clean() {
           )}
         </AnimatePresence>
       </main>
+      )}
     </div>
   )
 }

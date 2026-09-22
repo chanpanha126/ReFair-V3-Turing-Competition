@@ -16,14 +16,17 @@ import {
 import { type Layout, GridLayout, useContainerWidth } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { ChartCard, type ChartConfig } from '@/components/analyze/ChartCard'
 import { ChartSettingsPanel } from '@/components/analyze/ChartSettingsPanel'
 import { ChatPanel } from '@/components/analyze/ChatPanel'
 import { SINGLE_SERIES_PALETTE } from '@/components/charts/GenericChart'
 import { Button } from '@/components/ui/button'
+import { UploadFlow } from '@/components/upload/UploadFlow'
 import { cancellationByArea, deliveryTrend, kpis, ordersByArea, topRestaurants } from '@/data/mockDataset'
 import logoIcon from '@/assets/logo-icon.png'
+
+const ANALYZE_PROCESSING_STEPS = ['Reading file...', 'Validating structure...', 'Preparing dashboard...']
 
 const initialCharts: ChartConfig[] = [
   {
@@ -100,12 +103,16 @@ const toolbarIcons = [
 ]
 
 export default function Analyze() {
+  const location = useLocation()
+  const skippedUpload = Boolean((location.state as { skipUpload?: boolean } | null)?.skipUpload)
   const { width, containerRef } = useContainerWidth()
   const [charts, setCharts] = useState<ChartConfig[]>(initialCharts)
   const [layout, setLayout] = useState<Layout>(initialLayout)
   const [colorIndex, setColorIndex] = useState(0)
   const [settingsChartId, setSettingsChartId] = useState<string | null>(null)
   const [previewTitle, setPreviewTitle] = useState<string | null>(null)
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null)
+  const needsUpload = !skippedUpload && !uploadedFileName
 
   const activeColor = SINGLE_SERIES_PALETTE[colorIndex].value
   const settingsChart = charts.find((c) => c.id === settingsChartId) ?? null
@@ -152,6 +159,31 @@ export default function Analyze() {
         { ...addChartItem, y: addChartItem.y + 4 },
       ]
     })
+  }
+
+  if (needsUpload) {
+    return (
+      <div className="flex h-screen flex-col overflow-hidden">
+        <header className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
+          <Link to="/" className="shrink-0 transition-opacity hover:opacity-80" title="ReFair home">
+            <img src={logoIcon} alt="ReFair" className="size-7" />
+          </Link>
+          <Button variant="outline" size="sm" render={<Link to="/" />} nativeButton={false}>
+            <ArrowLeft className="size-4" />
+            Back
+          </Button>
+        </header>
+        <div className="flex flex-1 items-center justify-center px-6 py-12">
+          <UploadFlow
+            heading="Upload your clean dataset"
+            description="Drop in your file and we'll build your dashboard automatically."
+            ctaLabel="Upload & Analyze"
+            processingSteps={ANALYZE_PROCESSING_STEPS}
+            onComplete={setUploadedFileName}
+          />
+        </div>
+      </div>
+    )
   }
 
   return (
